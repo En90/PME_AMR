@@ -1,14 +1,14 @@
 class Order:
     def __init__(
         self,
-        missionType: str,
-        note: str,
-        random_password: int,
-        recipient: str,
-        recipient_location: str,
-        sender: str,
-        sender_location: str,
-        state: int,
+        missionType: str = "",
+        note: str = "",
+        random_password: int = 0,
+        recipient: str = "",
+        recipient_location: str = "",
+        sender: str = "",
+        sender_location: str = "",
+        state: int = -1,
     ):
         self.missionType = missionType
         self.note = note
@@ -19,16 +19,16 @@ class Order:
         self.sender_location = sender_location
         self.state = state
 
-    def from_dict(source):
+    def from_dict(self, source):
         order = Order(
-            source["missionType"],
-            source["note"],
-            source["ramdom_password"],
-            source["sender"],
-            source["recipient"],
-            source["sender_location"],
-            source["recipient_location"],
-            source["state"],
+            missionType=source["missionType"],
+            note=source["note"],
+            random_password=source["random_password"],
+            sender=source["sender"],
+            recipient=source["recipient"],
+            recipient_location=source["recipient_location"],
+            sender_location=source["sender_location"],
+            state=source["state"],
         )
         return order
 

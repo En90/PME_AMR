@@ -14,14 +14,17 @@ class Receive_Order_Service:
         self.confirmed = confirmed
 
     def __del__(self):
-        self.Confirmed_listener.unsubscribe()
-        self.Unconfirmed_listener.unsubscribe()
+        # self.Confirmed_listener.unsubscribe()
+        # self.Unconfirmed_listener.unsubscribe()
+        self.OrderListener.unsubscribe()
+        pass
 
     def InitService(self):
         try:
             self.FS = firestore.client()
-            self.RegistUnconfirmedOrdersListener()
-            self.RegistConfirmedOrdersListener()
+            # self.RegistUnconfirmedOrdersListener()
+            # self.RegistConfirmedOrdersListener()
+            self.RegistOrderListener()
             rospy.loginfo("Init receive order service success")
         except Exception as e:
             rospy.logerr("Error when init Firestore: %s", e)
@@ -74,6 +77,43 @@ class Receive_Order_Service:
                 filter=firestore.FieldFilter("state", "==", 1)
             )
             self.Confirmed_listener = Orders_ref.on_snapshot(on_snapshot)
+        except Exception as e:
+            rospy.logerr("Error when init FireStore listener: %s", e)
+
+    def RegistOrderListener(self):
+        def on_snapshot(col_snapshot, changes, read_time):
+            for doc in col_snapshot:
+                rospy.loginfo("Received document snapshot: %s", doc.id)
+            for change in changes:
+                if change.type.name == "ADDED":
+                    rospy.loginfo("New confirmed:\n%s", change.document.id)
+                    order = Order().from_dict(change.document.to_dict())
+                    if order.state == 0:
+                        self.unconfirmed[change.document.id] = order
+                    elif order.state == 1:
+                        self.unconfirmed.pop(change.document.id, None)
+                        self.confirmed[change.document.id] = order
+                        pass
+                    # rospy.loginfo(len(self.unconfirmed))
+                    # rospy.loginfo(len(self.confirmed))
+                elif change.type.name == "MODIFIED":
+                    rospy.loginfo("Modified: %s", change.document.id)
+                    order = Order().from_dict(change.document.to_dict())
+                    if order.state == 0:
+                        # self.unconfirmed[change.document.id] = order
+                        pass
+                    elif order.state == 1:
+                        self.unconfirmed.pop(change.document.id)
+                        self.confirmed[change.document.id] = order
+                    # rospy.loginfo(len(self.unconfirmed))
+                    # rospy.loginfo(len(self.confirmed))
+                elif change.type.name == "REMOVED":
+                    rospy.loginfo("Removed: %s", change.document.id)
+                    pass
+
+        try:
+            Orders_ref = self.FS.collection("Orders")
+            self.OrderListener = Orders_ref.on_snapshot(on_snapshot)
         except Exception as e:
             rospy.logerr("Error when init FireStore listener: %s", e)
 
