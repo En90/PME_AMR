@@ -1,0 +1,3 @@
+<launch>
+  <node name="administrator" pkg="administrator" type="administrator" output="screen"/>
+</launch>

@@ -1,0 +1,6 @@
+#!/home/en/python3.8_venv/bin/python3
+
+from firebase_bridge import main
+
+if __name__ == '__main__':
+    main()
