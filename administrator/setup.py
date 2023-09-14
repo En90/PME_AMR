@@ -5,8 +5,16 @@ from setuptools import setup
 from catkin_pkg.python_setup import generate_distutils_setup
 
 setup_args = generate_distutils_setup(
-        packages=['firebase_bridge'],
-        package_dir={'': 'src'}
+        packages=[
+            'firebase_bridge',
+            'firebase_bridge_class',
+            'firebase_bridge_service'
+            ],
+        package_dir={
+            '': 'src',
+            'firebase_bridge_class': 'src/firebase_bridge/firebase_bridge_class',
+            'firebase_bridge_service': 'src/firebase_bridge/firebase_bridge_service'
+            }
         )
 
 setup(**setup_args)
