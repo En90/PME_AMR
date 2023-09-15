@@ -14,7 +14,7 @@ class firebase_bridge:
         self.Unconfirmed = dict()
         self.Confirmed = dict()
         self.receive_order_service = Receive_Order_Service(
-            self.Unconfirmed, self.Confirmed
+            self.Unconfirmed, self.Confirmed, self.app
         )
         atexit.register(self.exit_handler)
 
@@ -26,7 +26,7 @@ class firebase_bridge:
     def app_init(self):
         try:
             cred = credentials.Certificate(
-                "/home/en/catkin_ws/src/graduation_project/administrator/config/pme-amr-ba13a-firebase-adminsdk-s75re-46e2eb31ac.json"
+                "/home/en/catkin_ws/src/graduation_project/administrator/cfg/pme-amr-ba13a-firebase-adminsdk-s75re-46e2eb31ac.json"
             )
             conf = {
                 "apiKey": "AIzaSyB6_p9elCG7TcKEN6DMukoXzUWZEASb_0U",

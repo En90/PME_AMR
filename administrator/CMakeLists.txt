@@ -150,6 +150,10 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+add_executable(vehicle_router src/vehicle_router/main.cpp)
+target_link_libraries(vehicle_router ${catkin_LIBRARIES})
+# add_dependencies()
+
 #############
 ## Install ##
 #############

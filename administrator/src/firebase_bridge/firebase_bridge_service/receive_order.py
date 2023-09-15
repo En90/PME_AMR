@@ -8,10 +8,11 @@ import rospy
 
 
 class Receive_Order_Service:
-    def __init__(self, unconfirmed: dict, confirmed: dict):
+    def __init__(self, unconfirmed: dict, confirmed: dict, app):
         self.InitService()
         self.unconfirmed = unconfirmed
         self.confirmed = confirmed
+        self.app = app
 
     def __del__(self):
         # self.Confirmed_listener.unsubscribe()
@@ -90,6 +91,7 @@ class Receive_Order_Service:
                     order = Order().from_dict(change.document.to_dict())
                     if order.state == 0:
                         self.unconfirmed[change.document.id] = order
+                        self.RemindRecipient(order.recipient, change.document.id)
                     elif order.state == 1:
                         self.unconfirmed.pop(change.document.id, None)
                         self.confirmed[change.document.id] = order
@@ -105,6 +107,9 @@ class Receive_Order_Service:
                     elif order.state == 1:
                         self.unconfirmed.pop(change.document.id)
                         self.confirmed[change.document.id] = order
+                        self.OrderEstablished(
+                            order.recipient, order.sender, change.document.id
+                        )
                     # rospy.loginfo(len(self.unconfirmed))
                     # rospy.loginfo(len(self.confirmed))
                 elif change.type.name == "REMOVED":
@@ -142,6 +147,62 @@ class Receive_Order_Service:
     def SendMsg(self, msg):
         try:
             response = messaging.send(msg, False, self.app)
+            rospy.loginfo("Successfully sent message: %s", response)
+        except exceptions.FirebaseError:
+            rospy.logerr("Send Msg: Firebase Error")
+            sys.exit()
+        except ValueError:
+            rospy.logerr("Send Msg: Value Error")
+            sys.exit()
+        except:
+            rospy.logerr("Send Msg: Else Error")
+            sys.exit()
+
+    def RemindRecipient(self, recipient: str, order_id: str):
+        try:
+            message = messaging.Message(
+                topic=recipient,
+                notification=messaging.Notification(
+                    title="PME_AMR",
+                    body="Order waiting to be confirmed!",
+                ),
+                data={"order_id": order_id},
+            )
+            rospy.loginfo("init message succeed")
+        except Exception as e:
+            rospy.logerr("Init compound message error %s", e)
+            sys.exit()
+
+        try:
+            response = messaging.send(message, False, self.app)
+            rospy.loginfo("Successfully sent message: %s", response)
+        except exceptions.FirebaseError:
+            rospy.logerr("Send Msg: Firebase Error")
+            sys.exit()
+        except ValueError:
+            rospy.logerr("Send Msg: Value Error")
+            sys.exit()
+        except:
+            rospy.logerr("Send Msg: Else Error")
+            sys.exit()
+
+    def OrderEstablished(self, recipient: str, sender: str, order_id: str):
+        try:
+            message = messaging.Message(
+                topic=recipient + "," + sender,
+                notification=messaging.Notification(
+                    title="PME_AMR",
+                    body="Order established!",
+                ),
+                data={"order_id": order_id},
+            )
+            rospy.loginfo("init message succeed")
+        except Exception as e:
+            rospy.logerr("Init compound message error %s", e)
+            sys.exit()
+
+        try:
+            response = messaging.send(message, False, self.app)
             rospy.loginfo("Successfully sent message: %s", response)
         except exceptions.FirebaseError:
             rospy.logerr("Send Msg: Firebase Error")
