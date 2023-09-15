@@ -14,7 +14,7 @@ class firebase_bridge:
         self.Unconfirmed = dict()
         self.Confirmed = dict()
         self.receive_order_service = Receive_Order_Service(
-            self.Unconfirmed, self.Confirmed, self.app
+            self.app, self.Unconfirmed, self.Confirmed
         )
         atexit.register(self.exit_handler)
 

@@ -8,7 +8,7 @@ import rospy
 
 
 class Receive_Order_Service:
-    def __init__(self, unconfirmed: dict, confirmed: dict, app):
+    def __init__(self, app, unconfirmed: dict, confirmed: dict):
         self.InitService()
         self.unconfirmed = unconfirmed
         self.confirmed = confirmed
@@ -87,7 +87,7 @@ class Receive_Order_Service:
                 rospy.loginfo("Received document snapshot: %s", doc.id)
             for change in changes:
                 if change.type.name == "ADDED":
-                    rospy.loginfo("New confirmed:\n%s", change.document.id)
+                    rospy.loginfo("New order:\n%s", change.document.id)
                     order = Order().from_dict(change.document.to_dict())
                     if order.state == 0:
                         self.unconfirmed[change.document.id] = order
@@ -95,6 +95,7 @@ class Receive_Order_Service:
                     elif order.state == 1:
                         self.unconfirmed.pop(change.document.id, None)
                         self.confirmed[change.document.id] = order
+                    else:
                         pass
                     # rospy.loginfo(len(self.unconfirmed))
                     # rospy.loginfo(len(self.confirmed))
@@ -107,9 +108,11 @@ class Receive_Order_Service:
                     elif order.state == 1:
                         self.unconfirmed.pop(change.document.id)
                         self.confirmed[change.document.id] = order
-                        self.OrderEstablished(
+                        self.SendOrderEstablished(
                             order.recipient, order.sender, change.document.id
                         )
+                    else:
+                        pass
                     # rospy.loginfo(len(self.unconfirmed))
                     # rospy.loginfo(len(self.confirmed))
                 elif change.type.name == "REMOVED":
@@ -186,10 +189,13 @@ class Receive_Order_Service:
             rospy.logerr("Send Msg: Else Error")
             sys.exit()
 
-    def OrderEstablished(self, recipient: str, sender: str, order_id: str):
+    def SendOrderEstablished(self, recipient: str, sender: str, order_id: str):
         try:
+            narrate1 = "'" + recipient + "'" + " in topics"
+            narrate2 = "'" + sender + "'" + " in topics"
+            condition = narrate1 + " || " + narrate2
             message = messaging.Message(
-                topic=recipient + "," + sender,
+                condition=condition,
                 notification=messaging.Notification(
                     title="PME_AMR",
                     body="Order established!",
@@ -207,8 +213,8 @@ class Receive_Order_Service:
         except exceptions.FirebaseError:
             rospy.logerr("Send Msg: Firebase Error")
             sys.exit()
-        except ValueError:
-            rospy.logerr("Send Msg: Value Error")
+        except ValueError as e:
+            rospy.logerr("Send Msg: Value Error: %s", e)
             sys.exit()
         except:
             rospy.logerr("Send Msg: Else Error")
