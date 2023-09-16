@@ -1,5 +1,6 @@
 import rospy
 import sys
+from copy import deepcopy
 from datetime import datetime
 from firebase_admin import firestore
 from firebase_admin import messaging
@@ -7,10 +8,10 @@ from firebase_admin import exceptions
 
 
 class Order_Timeout_Service:
-    def __init__(self, app, confirmed: dict):
-        self.confirmed = confirmed
+    def __init__(self, app, unconfirmed: dict):
+        self.unconfirmed = unconfirmed
         self.app = app
-        self.allids = confirmed.keys()
+        self.InitService()
 
     def __del__(self):
         pass
@@ -25,19 +26,27 @@ class Order_Timeout_Service:
 
     def RegistOrderTimer(self):
         def callback(event):
-            for order_id in self.allids:
+            unconfirmed = deepcopy(
+                self.unconfirmed
+            )  # prevent RuntimeError: dictionary changed size during iteration
+            for order_id, order in unconfirmed.items():
                 if self.CheckTimeout(order_id):
+                    rospy.logwarn("%s timeout", order_id)
                     # timeout
                     order_ref = self.FS.collection("Orders").document(order_id)
                     order_ref.update({"state": 2})  # represent Fail
-                    order_to_del = self.confirmed.pop(order_id)
+                    order_to_del = self.unconfirmed.pop(order_id)
                     self.SendOrderFailed(
                         order_to_del.recipient,
                         order_to_del.sender,
                         order_id,
                     )
                 else:
-                    self.SendToVehicleRouter(order_id)
+                    if order.state == 1:
+                        self.SendToVehicleRouter(order_id)
+                    elif order.state == 0:
+                        rospy.loginfo("not yet")
+                        pass
 
         rospy.Timer(rospy.Duration(1), callback)
 
@@ -50,7 +59,7 @@ class Order_Timeout_Service:
         else:
             return False
 
-    def IdDecode(id: str):
+    def IdDecode(self, id: str):
         try:
             idsplit = id.split("-")
             timestamp_str = idsplit[1]
@@ -63,12 +72,16 @@ class Order_Timeout_Service:
             rospy.logerr("IdDecode error: %s", e)
 
     def SendToVehicleRouter(self):
+        rospy.loginfo("send to vehicle router")
         pass
 
     def SendOrderFailed(self, recipient: str, sender: str, order_id: str):
         try:
+            narrate1 = "'" + recipient + "'" + " in topics"
+            narrate2 = "'" + sender + "'" + " in topics"
+            condition = narrate1 + " || " + narrate2
             message = messaging.Message(
-                topic=recipient + "," + sender,
+                condition=condition,
                 notification=messaging.Notification(
                     title="PME_AMR",
                     body="Order timeout and failed!",

@@ -116,7 +116,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -124,6 +124,9 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/administrator.cpp
 # )
+
+add_library(vrp_plugins src/vehicle_router/vrp_plugins.cpp)
+add_library(vehicle_router src/vehicle_router/vehicle_router.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -150,8 +153,8 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-add_executable(vehicle_router src/vehicle_router/main.cpp)
-target_link_libraries(vehicle_router ${catkin_LIBRARIES})
+# add_executable(vehicle_router_node nodes/vehicle_router_node.cpp)
+# target_link_libraries(vehicle_router_node ${catkin_LIBRARIES})
 # add_dependencies()
 
 #############
