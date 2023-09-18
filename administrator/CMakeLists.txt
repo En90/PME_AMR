@@ -164,8 +164,8 @@ add_library(vehicle_router src/vehicle_router/vehicle_router.cpp)
 #   ${catkin_LIBRARIES}
 # )
 
-# add_executable(vehicle_router_node nodes/vehicle_router_node.cpp)
-# target_link_libraries(vehicle_router_node ${catkin_LIBRARIES})
+add_executable(vehicle_router_node nodes/vehicle_router_node.cpp)
+target_link_libraries(vehicle_router_node ${catkin_LIBRARIES} vehicle_router)
 # add_dependencies()
 
 #############
@@ -179,7 +179,7 @@ add_library(vehicle_router src/vehicle_router/vehicle_router.cpp)
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   #scripts/my_python_script
-  nodes/administrator
+  nodes/firebase_bridge
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

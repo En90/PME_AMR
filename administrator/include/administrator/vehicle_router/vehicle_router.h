@@ -8,48 +8,16 @@
 #include <vector>
 #include <std_msgs/String.h>
 #include "administrator/order_msgs.h"
+#include "administrator/vehicle_router/order_struct.h"
+#include "administrator/vehicle_router/robot_struct.h"
 
 namespace administrator{
     class Vehicle_Router{
         private:
-            struct Order{
-                std::string order_id;
-                std::string missionType;
-                std::string random_password;
-                std::string recipient;
-                std::string recipient_location;
-                std::string sender;
-                std::string sender_location;
-                short int priority = -1;
-                enum State{WAIT, _RL, RL, _SL, SL};
-                Order(
-                    const std::string& order_id_in,
-                    const std::string& missionType_in,
-                    const std::string& random_password_in,
-                    const std::string& recipient_in,
-                    const std::string& recipient_location_in,
-                    const std::string& sender_in,
-                    const std::string& sender_location_in,
-                    short int priority_in) :
-                    order_id(order_id_in),
-                    missionType(missionType_in),
-                    random_password(random_password_in),
-                    recipient(recipient_in),
-                    recipient_location(recipient_location_in),
-                    sender(sender_in),
-                    sender_location(sender_location_in),
-                    priority(priority_in){};
-            };
             struct Order_Comp{
                 bool operator()(Order a, Order b){
                     return a.priority > b.priority;
                 }
-            };
-            struct Robot{
-                unsigned short int capacity = 1;
-                enum State{IDLE, WAIT, RUN, STUCK};
-                State state = IDLE;
-                std::queue<std::pair<std::string, std::string>> goals; // order_id, goal_id
             };
             class VRP_Solver_temp{
                 private:
