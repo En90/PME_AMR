@@ -1,3 +1,4 @@
+std_msgs/String order_id
 std_msgs/String missionType
 std_msgs/String random_password
 std_msgs/String recipient

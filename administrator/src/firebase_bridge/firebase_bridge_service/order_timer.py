@@ -2,6 +2,8 @@ import rospy
 import sys
 from copy import deepcopy
 from datetime import datetime
+from firebase_bridge_class import Order
+from administrator.msg import order_msgs
 from firebase_admin import firestore
 from firebase_admin import messaging
 from firebase_admin import exceptions
@@ -18,8 +20,10 @@ class Order_Timeout_Service:
 
     def InitService(self):
         try:
+            self.confirmed_pub = rospy.Publisher("confirmed_order", order_msgs)
             self.FS = firestore.client()
             self.RegistOrderTimer()
+
             rospy.loginfo("Init order timeout service success")
         except Exception as e:
             rospy.logerr("Error when init Firestore: %s", e)
@@ -43,7 +47,7 @@ class Order_Timeout_Service:
                     )
                 else:
                     if order.state == 1:
-                        self.SendToVehicleRouter(order_id)
+                        self.SendToVehicleRouter(order_id, order)
                     elif order.state == 0:
                         rospy.loginfo("not yet")
                         pass
@@ -71,9 +75,13 @@ class Order_Timeout_Service:
         except Exception as e:
             rospy.logerr("IdDecode error: %s", e)
 
-    def SendToVehicleRouter(self):
-        rospy.loginfo("send to vehicle router")
-        pass
+    def SendToVehicleRouter(self, order_id: str, order: Order):
+        try:
+            msg = self.OrderToMsg(order_id=order_id, order=order)
+            self.confirmed_pub.publish(msg)
+            rospy.loginfo("send to vehicle router")
+        except Exception as e:
+            rospy.logerr("send to vehicle router error %s", e)
 
     def SendOrderFailed(self, recipient: str, sender: str, order_id: str):
         try:
@@ -105,3 +113,15 @@ class Order_Timeout_Service:
         except:
             rospy.logerr("Send Msg: Else Error")
             sys.exit()
+
+    def OrderToMsg(self, order_id: str, order: Order, prior: int = -1):
+        msg = order_msgs()
+        msg.order_id = order_id
+        msg.missionType = order.missionType
+        msg.random_password = order.random_password
+        msg.recipient = order.recipient
+        msg.recipient_location = order.recipient_location
+        msg.sender = order.sender
+        msg.sender_location = order.sender_location
+        msg.priority = prior
+        return msg
