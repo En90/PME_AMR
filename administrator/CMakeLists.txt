@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
+  pluginlib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -114,10 +115,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES administrator
+  # INCLUDE_DIRS include
+  # LIBRARIES administrator
   CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
-#  DEPENDS system_lib
+  # DEPENDS system_lib
 )
 
 ###########
@@ -138,6 +139,7 @@ include_directories(
 
 add_library(vrp_plugins src/vehicle_router/vrp_plugins.cpp)
 add_library(vehicle_router src/vehicle_router/vehicle_router.cpp)
+target_link_libraries(vehicle_router ${catkin_LIBRARIES} vrp_plugins)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

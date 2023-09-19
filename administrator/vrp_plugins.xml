@@ -1,0 +1,5 @@
+<library path="lib/libvrp_plugins">
+	<class type="vrp_plugins::Simple" base_class_type="vrp_base::VehicleRoutingSolver_base">
+		<description>This is most simple plugin.</description>
+	</class>
+</library>

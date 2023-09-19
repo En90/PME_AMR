@@ -8,8 +8,8 @@ namespace vrp_plugins
     {
         public:
             Simple(){}
-            void initialize();
-            std::vector<std::vector<std::string>> plan();
+            void initialize(const unsigned short int& robot_num_);
+            void solve();
     };
 };
 
