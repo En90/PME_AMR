@@ -6,6 +6,7 @@ namespace administrator{
         
         //Init Sub and Pub
         order_sub = nh.subscribe("/confirmed_order", 10, &Vehicle_Router::order_callback, this);
+        robot_sub = nh.subscribe("/robot_state", 10, &Vehicle_Router::robot_callback, this);
         order_state_pub = nh.advertise<std_msgs::String>("/order_state", 1);
 
         //Load plugin
@@ -13,6 +14,7 @@ namespace administrator{
         try{
             pluginlib::ClassLoader<vrp_base::VehicleRoutingSolver_base> vrp_loader("administrator", "vrp_base::VehicleRoutingSolver_base");
             VRP_Solver = vrp_loader.createInstance(plugin_);
+            VRP_Solver->initialize(robot_num, robot_capacity);
         }
         catch(pluginlib::PluginlibException& ex){
             ROS_ERROR("The plugin failed to load for some reason. Error: %s", ex.what());
@@ -30,7 +32,12 @@ namespace administrator{
             msg->sender_location.data,
             msg->priority.data);
         ROS_INFO("Add %s", order.order_id.c_str());
-        confirmed_waiting_q.emplace(order);
-        ROS_INFO("%ld orders in waiting.", confirmed_waiting_q.size());
+        VRP_Solver->waiting_order.emplace(order);
+        ROS_INFO("%ld orders in waiting.", VRP_Solver->waiting_order.size());
+    }
+
+    void Vehicle_Router::robot_callback(const std_msgs::Float32MultiArray& msg){
+        int robot_id = msg.data[0];
+        VRP_Solver->robots[robot_id].state = static_cast<Robot::State>(msg.data[1]);
     }
 }

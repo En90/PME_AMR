@@ -22,7 +22,7 @@ namespace vrp_base{
             std::priority_queue<Order, std::vector<Order>, Order_Comp> waiting_order;
             std::unordered_map<std::string, std::pair<unsigned short int, Order>> working_orders; // key[order_id]: value[<robot_id, order>]
             std::vector<Robot> robots;
-            virtual void initialize(const unsigned short int& robot_num_){};
+            virtual void initialize(const std::size_t& robot_num_, const unsigned short int& robot_capacity_){};
             virtual void solve(){};
             virtual ~VehicleRoutingSolver_base(){}
 

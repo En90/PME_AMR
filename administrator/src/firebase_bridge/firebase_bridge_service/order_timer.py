@@ -20,7 +20,7 @@ class Order_Timeout_Service:
 
     def InitService(self):
         try:
-            self.confirmed_pub = rospy.Publisher("confirmed_order", order_msgs)
+            self.confirmed_pub = rospy.Publisher("confirmed_order", order_msgs, 10)
             self.FS = firestore.client()
             self.RegistOrderTimer()
 

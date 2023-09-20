@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <std_msgs/String.h>
+#include <std_msgs/Float32MultiArray.h>
 #include <pluginlib/class_loader.h>
 #include "administrator/order_msgs.h"
 #include "administrator/vehicle_router/order_struct.h"
@@ -23,14 +24,13 @@ namespace administrator{
                 }
             };
             ros::NodeHandle nh;
-            std::priority_queue<Order, std::vector<Order>, Order_Comp> confirmed_waiting_q;
-            std::unordered_map<std::string, std::pair<unsigned short int, Order>> working_orders; // key[order_id]: value[<robot_id, order>]
-            const std::size_t robot_num_ = 1; // get from ros param
-            std::vector<Robot> robots = std::vector<Robot>(robot_num_);
+            const std::size_t robot_num = 1; // get from ros param
+            const unsigned short int robot_capacity = 1; // get from ros param
             ros::Subscriber order_sub;
+            ros::Subscriber robot_sub;
             ros::Publisher order_state_pub;
             void order_callback(const order_msgs::ConstPtr& msg);
-            void init_robots();
+            void robot_callback(const std_msgs::Float32MultiArray& msg);
             boost::shared_ptr<vrp_base::VehicleRoutingSolver_base> VRP_Solver;
 
         public:

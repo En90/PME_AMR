@@ -8,7 +8,7 @@ namespace vrp_plugins
     {
         public:
             Simple(){}
-            void initialize(const unsigned short int& robot_num_);
+            void initialize(const std::size_t& robot_num_, const unsigned short int& capacity_);
             void solve();
     };
 };

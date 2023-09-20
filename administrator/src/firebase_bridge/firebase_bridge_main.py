@@ -3,6 +3,7 @@ import atexit
 from .firebase_bridge_class import Robot, Order
 from .firebase_bridge_service import Receive_Order_Service
 from .firebase_bridge_service import Order_Timeout_Service
+from .firebase_bridge_service import Site_Manage_Service
 from firebase_admin import credentials
 from firebase_admin import initialize_app
 from firebase_admin import delete_app
@@ -14,10 +15,12 @@ class firebase_bridge:
         self.app = self.app_init()
         self.Unconfirmed = dict()
         self.Confirmed = dict()
-        self.receive_order_service = Receive_Order_Service(
-            self.app, self.Unconfirmed, self.Confirmed
-        )
-        self.order_timeout_service = Order_Timeout_Service(self.app, self.Unconfirmed)
+        self.Sites = dict()
+        # self.receive_order_service = Receive_Order_Service(
+        #     self.app, self.Unconfirmed, self.Confirmed
+        # )
+        # self.order_timeout_service = Order_Timeout_Service(self.app, self.Unconfirmed)
+        self.site_manage_service = Site_Manage_Service(self.app, self.Sites)
         atexit.register(self.exit_handler)
 
     def exit_handler(self):

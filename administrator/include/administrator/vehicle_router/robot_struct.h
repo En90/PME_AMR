@@ -9,6 +9,7 @@ struct Robot{
     enum State{IDLE, WAIT, RUN, STUCK};
     State state = IDLE;
     std::queue<std::pair<std::string, std::string>> goals; // order_id, goal_id
+    Robot(const unsigned short int& capacity_) : capacity(capacity_){};
 };
 
 #endif

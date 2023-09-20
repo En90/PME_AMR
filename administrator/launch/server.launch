@@ -1,4 +1,4 @@
 <launch>
   <node name="firebase_bridge" pkg="administrator" type="firebase_bridge" output="screen"/>
-  <node name="vehicle_router" pkg="administrator" type="vehicle_router" output="screen"/>
+  <node name="vehicle_router" pkg="administrator" type="vehicle_router_node" output="screen"/>
 </launch>
