@@ -16,12 +16,18 @@ class Site_Manage_Service:
 
     def InitService(self):
         try:
-            self.site_pub = rospy.Publisher("site", PoseStamped, queue_size=10)
+            self.site_location_pub = rospy.Publisher(
+                "/site_location", PoseStamped, queue_size=500
+            )
             self.loc_ref = db.reference("/Location")
             # self.RegistSiteListener()
             self.GetOnce()
-            self.SendSites()
+            while True:
+                if self.site_location_pub.get_num_connections():
+                    self.SendSitesLocation()
+                    break
             rospy.loginfo("start site manage service success!")
+
         except Exception as e:
             rospy.logerr("error when regist site listener: %s", e)
 
@@ -41,18 +47,24 @@ class Site_Manage_Service:
         self.loc_ref.listen("child_changed", on_child_changed)
 
     def GetOnce(self):
-        self.sites = self.loc_ref.get()
+        for site_id, site_value in self.loc_ref.get().items():
+            site = Site().from_dict(source=site_value)
+            self.sites[site_id] = site
 
-    def SendSites(self):
+    def SendSitesLocation(self):
         for site_id, site_value in self.sites.items():
             msg = PoseStamped()
             msg.header.frame_id = site_id
-            msg.pose.position.x = site_value["position"]["x"]
-            msg.pose.position.y = site_value["position"]["y"]
-            msg.pose.position.z = site_value["position"]["z"]
-            msg.pose.orientation.x = site_value["orientation"]["x"]
-            msg.pose.orientation.y = site_value["orientation"]["y"]
-            msg.pose.orientation.z = site_value["orientation"]["z"]
-            msg.pose.orientation.w = site_value["orientation"]["w"]
-            msg.pose.position.z = site_value["floor"]
-            self.site_pub.publish(msg)
+            msg.pose.position.x = site_value.position[0]
+            msg.pose.position.y = site_value.position[1]
+            msg.pose.position.z = site_value.position[2]
+            msg.pose.orientation.x = site_value.orientation[0]
+            msg.pose.orientation.y = site_value.orientation[1]
+            msg.pose.orientation.z = site_value.orientation[2]
+            msg.pose.orientation.w = site_value.orientation[3]
+            msg.pose.position.z = site_value.floor
+            self.site_location_pub.publish(msg)
+            rospy.loginfo("send site?")
+
+    def SendSitesState(self):
+        pass

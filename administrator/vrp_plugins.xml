@@ -2,4 +2,7 @@
 	<class type="vrp_plugins::Simple" base_class_type="vrp_base::VehicleRoutingSolver_base">
 		<description>This is most simple plugin.</description>
 	</class>
+	<class type="vrp_plugins::Heuristic" base_class_type="vrp_base::VehicleRoutingSolver_base">
+		<description>Use Heuristic function to plan.</description>
+	</class>
 </library>

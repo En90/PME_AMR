@@ -1,4 +1,7 @@
 <launch>
-  <node name="firebase_bridge" pkg="administrator" type="firebase_bridge" output="screen"/>
+  <group ns="vehicle_routing_problem">
+    <rosparam command="load" file="$(find administrator)/config/robot_param.yaml"/>
+  </group>
   <node name="vehicle_router" pkg="administrator" type="vehicle_router_node" output="screen"/>
+  <node name="firebase_bridge" pkg="administrator" type="firebase_bridge" output="screen"/>
 </launch>

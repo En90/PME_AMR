@@ -16,10 +16,10 @@ class firebase_bridge:
         self.Unconfirmed = dict()
         self.Confirmed = dict()
         self.Sites = dict()
-        # self.receive_order_service = Receive_Order_Service(
-        #     self.app, self.Unconfirmed, self.Confirmed
-        # )
-        # self.order_timeout_service = Order_Timeout_Service(self.app, self.Unconfirmed)
+        self.receive_order_service = Receive_Order_Service(
+            self.app, self.Unconfirmed, self.Confirmed
+        )
+        self.order_timeout_service = Order_Timeout_Service(self.app, self.Unconfirmed)
         self.site_manage_service = Site_Manage_Service(self.app, self.Sites)
         atexit.register(self.exit_handler)
 

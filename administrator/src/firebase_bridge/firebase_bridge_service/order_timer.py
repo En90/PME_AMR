@@ -20,7 +20,9 @@ class Order_Timeout_Service:
 
     def InitService(self):
         try:
-            self.confirmed_pub = rospy.Publisher("confirmed_order", order_msgs, 10)
+            self.confirmed_pub = rospy.Publisher(
+                "confirmed_order", order_msgs, queue_size=10
+            )
             self.FS = firestore.client()
             self.RegistOrderTimer()
 
@@ -38,7 +40,7 @@ class Order_Timeout_Service:
                     rospy.logwarn("%s timeout", order_id)
                     # timeout
                     order_ref = self.FS.collection("Orders").document(order_id)
-                    order_ref.update({"state": 2})  # represent Fail
+                    order_ref.update({"state": 3})  # represent Fail
                     order_to_del = self.unconfirmed.pop(order_id)
                     self.SendOrderFailed(
                         order_to_del.recipient,
@@ -84,6 +86,7 @@ class Order_Timeout_Service:
             rospy.logerr("send to vehicle router error %s", e)
 
     def SendOrderFailed(self, recipient: str, sender: str, order_id: str):
+        rospy.loginfo("SendOrderFailed")
         try:
             narrate1 = "'" + recipient + "'" + " in topics"
             narrate2 = "'" + sender + "'" + " in topics"

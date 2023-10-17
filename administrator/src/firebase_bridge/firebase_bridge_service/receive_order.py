@@ -139,6 +139,7 @@ class Receive_Order_Service:
                     "sender_location": "locA",
                     "recipient_location": "locB",
                     "order_id": "order_id",
+                    "state": "0",
                 },
             )
             rospy.loginfo("init message succeed")
@@ -162,6 +163,7 @@ class Receive_Order_Service:
             sys.exit()
 
     def RemindRecipient(self, recipient: str, order_id: str):
+        rospy.loginfo("remind recipient")
         try:
             message = messaging.Message(
                 topic=recipient,

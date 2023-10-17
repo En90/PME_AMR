@@ -3,17 +3,14 @@
 #include <administrator/vehicle_router/vrp_plugins.h>
 
 PLUGINLIB_EXPORT_CLASS(vrp_plugins::Simple, vrp_base::VehicleRoutingSolver_base)
+PLUGINLIB_EXPORT_CLASS(vrp_plugins::Heuristic, vrp_base::VehicleRoutingSolver_base)
 
 namespace vrp_plugins
 {
-    void Simple::initialize(const std::size_t& robot_num_, const unsigned short int& capacity_){
-        // init all robots
-        working_orders.clear();
-        robots.clear();
-        for(std::size_t robot_id = 0; robot_id < robot_num_; robot_id++){
-            Robot robot(capacity_);
-            robots.emplace_back(robot);
-        }
+    void Simple::initialize(ros::NodeHandle& nh_){
+        nh = nh_;
+        init_robots();
+        init_cost_matrix();
     }
 
     void Simple::solve(){
@@ -31,5 +28,19 @@ namespace vrp_plugins
             else
                 continue;
         }
+    }
+
+    void Heuristic::initialize(ros::NodeHandle& nh_){
+        nh = nh_;
+        init_robots();
+        init_cost_matrix();
+    }
+
+    void Heuristic::solve(){
+
+    }
+
+    void Heuristic::init_cost_matrix(){
+
     }
 };

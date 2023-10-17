@@ -8,8 +8,17 @@ namespace vrp_plugins
     {
         public:
             Simple(){}
-            void initialize(const std::size_t& robot_num_, const unsigned short int& capacity_);
+            void initialize(ros::NodeHandle& nh_);
             void solve();
+    };
+
+    class Heuristic : public vrp_base::VehicleRoutingSolver_base
+    {
+        public:
+            Heuristic(){};
+            void initialize(ros::NodeHandle& nh_);
+            void solve();
+            void init_cost_matrix();
     };
 };
 
