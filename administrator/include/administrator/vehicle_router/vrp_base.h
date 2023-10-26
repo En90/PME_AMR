@@ -24,7 +24,7 @@ namespace vrp_base{
             std::unordered_map<std::string, std::pair<unsigned short int, Order>> working_orders; // key[order_id]: value[<robot_id, order>]
             std::vector<Robot> robots;
             std::vector<std::vector<unsigned int>> cost_matrix;
-            std::unordered_map<std::string, unsigned int> site_map;
+            std::unordered_map<std::string, unsigned short int> site_map;
             ros::NodeHandle nh;
             int robot_num = 1; 
             virtual void initialize(ros::NodeHandle& nh_){};
@@ -36,12 +36,12 @@ namespace vrp_base{
             virtual void init_robots(){
                 int robot_capacity = 1;
                 // load param 
-                if(nh.getParam("vehicle_routing_problem/robot_number", robot_num) == false){
-                    ROS_WARN("Can not get param: vehicle_routing_problem/robot_number");
+                if(nh.getParam("/vehicle_routing_problem/robot_number", robot_num) == false){
+                    ROS_WARN("Can not get param: /vehicle_routing_problem/robot_number");
                     ROS_WARN("Use default value: 1");
                 }
-                if(nh.getParam("vehicle_routing_problem/robot_capacity", robot_capacity) == false){
-                    ROS_WARN("Can not get param: vehicle_routing_problem/robot_capacity");
+                if(nh.getParam("/vehicle_routing_problem/robot_capacity", robot_capacity) == false){
+                    ROS_WARN("Can not get param: /vehicle_routing_problem/robot_capacity");
                     ROS_WARN("Use default value: 1");
                 }
                 // init robots

@@ -3,7 +3,7 @@ class Order:
         self,
         missionType: str = "",
         note: str = "",
-        random_password: str = "",
+        random_password: int = "",
         recipient: str = "",
         recipient_location: str = "",
         sender: str = "",
@@ -14,7 +14,7 @@ class Order:
         self.note = note
         self.random_password = random_password
         self.recipient = recipient
-        self.recipient_locatioin = recipient_location
+        self.recipient_location = recipient_location
         self.sender = sender
         self.sender_location = sender_location
         self.state = state

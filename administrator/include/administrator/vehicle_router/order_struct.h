@@ -6,7 +6,7 @@
 struct Order{
     std::string order_id;
     std::string missionType;
-    std::string random_password;
+    short int random_password;
     std::string recipient;
     std::string recipient_location;
     std::string sender;
@@ -16,7 +16,7 @@ struct Order{
     Order(
         const std::string& order_id_in,
         const std::string& missionType_in,
-        const std::string& random_password_in,
+        const short int& random_password_in,
         const std::string& recipient_in,
         const std::string& recipient_location_in,
         const std::string& sender_in,

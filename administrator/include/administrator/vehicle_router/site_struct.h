@@ -22,6 +22,7 @@ struct Site{
         orientation(orientation_){
             state = IDLE;
         };
+    Site(){};
 };
 
 #endif

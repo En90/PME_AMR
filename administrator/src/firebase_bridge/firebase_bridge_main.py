@@ -11,7 +11,7 @@ from firebase_admin import delete_app
 
 class firebase_bridge:
     def __init__(self):
-        rospy.init_node("firebase_bridge")
+        rospy.init_node("firebase_bridge", disable_signals=True)
         self.app = self.app_init()
         self.Unconfirmed = dict()
         self.Confirmed = dict()
@@ -19,14 +19,23 @@ class firebase_bridge:
         self.receive_order_service = Receive_Order_Service(
             self.app, self.Unconfirmed, self.Confirmed
         )
-        self.order_timeout_service = Order_Timeout_Service(self.app, self.Unconfirmed)
+        # self.order_timeout_service = Order_Timeout_Service(self.app, self.Unconfirmed)
         self.site_manage_service = Site_Manage_Service(self.app, self.Sites)
-        atexit.register(self.exit_handler)
+        # atexit.register(self.exit_handler)
+        rospy.on_shutdown(self.myhook)
 
-    def exit_handler(self):
+    # def exit_handler(self):
+    #     rospy.loginfo("shutdown time!")
+    #     self.receive_order_service = None
+    #     self.order_timeout_service = None
+    #     self.site_manage_service = None
+    #     delete_app(self.app)
+
+    def myhook(self):
         rospy.loginfo("shutdown time!")
         self.receive_order_service = None
         self.order_timeout_service = None
+        self.site_manage_service = None
         delete_app(self.app)
 
     def app_init(self):

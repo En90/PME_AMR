@@ -3,7 +3,6 @@ import sys
 from copy import deepcopy
 from datetime import datetime
 from firebase_bridge_class import Order
-from administrator.msg import order_msgs
 from firebase_admin import firestore
 from firebase_admin import messaging
 from firebase_admin import exceptions
@@ -20,12 +19,8 @@ class Order_Timeout_Service:
 
     def InitService(self):
         try:
-            self.confirmed_pub = rospy.Publisher(
-                "confirmed_order", order_msgs, queue_size=10
-            )
             self.FS = firestore.client()
             self.RegistOrderTimer()
-
             rospy.loginfo("Init order timeout service success")
         except Exception as e:
             rospy.logerr("Error when init Firestore: %s", e)
@@ -47,12 +42,11 @@ class Order_Timeout_Service:
                         order_to_del.sender,
                         order_id,
                     )
+                elif order.state == 0:
+                    rospy.loginfo("not yet")
+                    pass
                 else:
-                    if order.state == 1:
-                        self.SendToVehicleRouter(order_id, order)
-                    elif order.state == 0:
-                        rospy.loginfo("not yet")
-                        pass
+                    pass
 
         rospy.Timer(rospy.Duration(1), callback)
 
@@ -77,16 +71,8 @@ class Order_Timeout_Service:
         except Exception as e:
             rospy.logerr("IdDecode error: %s", e)
 
-    def SendToVehicleRouter(self, order_id: str, order: Order):
-        try:
-            msg = self.OrderToMsg(order_id=order_id, order=order)
-            self.confirmed_pub.publish(msg)
-            rospy.loginfo("send to vehicle router")
-        except Exception as e:
-            rospy.logerr("send to vehicle router error %s", e)
-
     def SendOrderFailed(self, recipient: str, sender: str, order_id: str):
-        rospy.loginfo("SendOrderFailed")
+        rospy.loginfo("send order failed")
         try:
             narrate1 = "'" + recipient + "'" + " in topics"
             narrate2 = "'" + sender + "'" + " in topics"
@@ -97,16 +83,18 @@ class Order_Timeout_Service:
                     title="PME_AMR",
                     body="Order timeout and failed!",
                 ),
-                data={"order_id": order_id},
+                data={"order_id": order_id, "state": "3"},
             )
             rospy.loginfo("init message succeed")
         except Exception as e:
             rospy.logerr("Init compound message error %s", e)
-            sys.exit()
+            reason: str = "Init compound message error"
+            rospy.signal_shutdown(reason)
+            # sys.exit()
 
         try:
             response = messaging.send(message, False, self.app)
-            rospy.loginfo("Successfully sent message: %s", response)
+            rospy.loginfo("Successfully sent message order failed: %s", response)
         except exceptions.FirebaseError:
             rospy.logerr("Send Msg: Firebase Error")
             sys.exit()
@@ -116,15 +104,3 @@ class Order_Timeout_Service:
         except:
             rospy.logerr("Send Msg: Else Error")
             sys.exit()
-
-    def OrderToMsg(self, order_id: str, order: Order, prior: int = -1):
-        msg = order_msgs()
-        msg.order_id = order_id
-        msg.missionType = order.missionType
-        msg.random_password = order.random_password
-        msg.recipient = order.recipient
-        msg.recipient_location = order.recipient_location
-        msg.sender = order.sender
-        msg.sender_location = order.sender_location
-        msg.priority = prior
-        return msg

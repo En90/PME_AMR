@@ -1,6 +1,6 @@
 std_msgs/String order_id
 std_msgs/String missionType
-std_msgs/String random_password
+std_msgs/Int16 random_password
 std_msgs/String recipient
 std_msgs/String recipient_location
 std_msgs/String sender

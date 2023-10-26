@@ -1,15 +1,18 @@
 #ifndef ROBOT_STRUCT_H_
 #define ROBOT_STRUCT_H_
 
-#include <queue>
+#include <deque>
 #include <string>
 
 struct Robot{
     unsigned short int capacity = 1;
-    enum State{IDLE, WAIT, RUN, STUCK, WORK};
+    unsigned short int load = 0;
+    enum State{RUN, STUCK, WORK, GOAL, GOHOME, IDLE, WAIT};
     State state = IDLE;
-    std::queue<std::pair<std::string, std::string>> goals; // order_id, goal_id
+    std::deque<std::pair<std::string, std::string>> goals; // order_id, site_name
     Robot(const unsigned short int& capacity_) : capacity(capacity_){};
+    unsigned short int position = 0;
+    unsigned short int heading_position = 0;
 };
 
 #endif
