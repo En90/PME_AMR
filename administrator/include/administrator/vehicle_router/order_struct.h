@@ -12,7 +12,8 @@ struct Order{
     std::string sender;
     std::string sender_location;
     short int priority = -1;
-    enum State{WAIT, _RL, RL, _SL, SL};
+    enum State{WAIT=0, PL, PM, DL, DM};
+    State state = WAIT;
     Order(
         const std::string& order_id_in,
         const std::string& missionType_in,

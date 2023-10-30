@@ -44,7 +44,7 @@ namespace administrator{
             // method
             //bool send_goal(int& robot_id, Site& goal_site_);
             bool send_goal(Robot& robot_, int robot_id, std::string site_id, std::string order_id);
-            bool send_order(std::string& order_id_, int& state_);
+            bool send_order_state(std::string& order_id_, int state_, int robot_id_);
 
         public:
             Vehicle_Router();

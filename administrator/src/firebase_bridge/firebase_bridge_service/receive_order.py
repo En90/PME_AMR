@@ -94,7 +94,13 @@ class Receive_Order_Service:
                     order = Order().from_dict(change.document.to_dict())
                     if order.state == 0:
                         self.unconfirmed[change.document.id] = order
-                        self.RemindRecipient(order.recipient, change.document.id)
+                        self.RemindRecipient(
+                            change.document.id,
+                            order.recipient,
+                            order.sender,
+                            order.recipient_location,
+                            order.sender_location,
+                        )
                     elif order.state == 1:
                         pass
                         # self.unconfirmed.pop(change.document.id, None)
@@ -167,7 +173,14 @@ class Receive_Order_Service:
             rospy.logerr("Send Msg: Else Error")
             sys.exit()
 
-    def RemindRecipient(self, recipient: str, order_id: str):
+    def RemindRecipient(
+        self,
+        order_id: str,
+        recipient: str,
+        sender: str,
+        recipient_location: str,
+        sender_location: str,
+    ):
         rospy.loginfo("remind recipient")
         try:
             message = messaging.Message(
@@ -176,7 +189,14 @@ class Receive_Order_Service:
                     title="PME_AMR",
                     body="Order waiting to be confirmed!",
                 ),
-                data={"order_id": order_id, "state": "1"},
+                data={
+                    "order_id": order_id,
+                    "state": "1",
+                    "recipient": recipient,
+                    "sender": sender,
+                    "recipient_location": recipient_location,
+                    "sender_location": sender_location,
+                },
             )
             rospy.loginfo("init message succeed")
         except Exception as e:
@@ -207,7 +227,7 @@ class Receive_Order_Service:
                     title="PME_AMR",
                     body="Order established!",
                 ),
-                data={"order_id": order_id},
+                data={"order_id": order_id, "state": "-1"},
             )
             rospy.loginfo("init message succeed")
         except Exception as e:

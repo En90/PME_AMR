@@ -51,6 +51,8 @@ namespace administrator{
                 if(send_goal(robot_, robot_id, site_id, order_id)){
                     robot_.goals.pop_front();
                     robot_.state = Robot::State::RUN;
+                    robot_.doing_order_id = order_id;
+                    robot_.doing_mission = site_id;
                 }
                 else
                     ROS_ERROR("send goal error");
@@ -81,20 +83,61 @@ namespace administrator{
         
         // 針對 state 做出反應
         if(now_state == Robot::State::STUCK){
-
+            if(robot_.state == Robot::State::WORK){
+                // work error
+            }
+            else if(robot_.state == Robot::State::RUN){
+                // run error
+            }
+            else
+                ROS_ERROR("error about robot state: imposible state");
         }
         else if(now_state == Robot::State::WAIT){
-            if(robot_.goals.empty() && robot_.state == Robot::State::GOHOME)
-                robot_.state == Robot::State::IDLE;
-            else if(robot_.goals.empty()){
-                if(!send_goal(robot_, robot_id, "0", "0"))
-                    ROS_ERROR("send robot %d go home FAILED", robot_id);
-                robot_.state == Robot::State::GOHOME;
+            // goal success, update order state
+            std::pair<unsigned short int, Order> working_order_ = (VRP_Solver->working_orders).at(robot_.doing_order_id);
+            if(robot_.doing_mission == "DROP_OFF"){
+                working_order_.second.state = Order::State::DM;
+                // send back to bridge
+                send_order_state(robot_.doing_order_id, Order::State::DM, robot_id);
+                // order complete update
+                VRP_Solver->working_orders.erase("robot_.doing_order_id");
+            }
+            else if(robot_.doing_mission == "PICK_UP"){
+                working_order_.second.state = Order::State::PM;
+                // send back to bridge
+                send_order_state(robot_.doing_order_id, Order::State::PM, robot_id);
+            }
+            else if(robot_.doing_mission == working_order_.second.recipient_location){
+                working_order_.second.state = Order::State::DL;
+                // send back to bridge
+                send_order_state(robot_.doing_order_id, Order::State::DL, robot_id);
+            }
+            else if(robot_.doing_mission == working_order_.second.sender_location){
+                working_order_.second.state = Order::State::PL;
+                // send back to bridge
+                send_order_state(robot_.doing_order_id, Order::State::PL, robot_id);
+            }
+            else if(robot_.doing_mission == "0"){
+                if(robot_.goals.empty())
+                    robot_.state == Robot::State::IDLE;
             }
             else{
-                // !robot_.goals.empty()
-                if(send_goal(robot_, robot_id, robot_.goals.front().second, robot_.goals.front().first))
+                // imposible state
+            }
+
+            // send new robot goal
+            if(robot_.goals.empty()){
+                if(!send_goal(robot_, robot_id, "0", "0"))
+                    ROS_ERROR("send robot %d go home FAILED", robot_id);
+                robot_.doing_mission = "0";
+                robot_.doing_order_id = "0";
+            }
+            else{
+                if(send_goal(robot_, robot_id, robot_.goals.front().second, robot_.goals.front().first)){
+                    robot_.doing_mission = robot_.goals.front().second;
+                    robot_.doing_order_id = robot_.goals.front().first;
                     robot_.goals.pop_front();
+                }
                 else
                     ROS_ERROR("send robot %d to goal %s FAILED", robot_id, robot_.goals.front().second.c_str());
             }
@@ -151,11 +194,12 @@ namespace administrator{
         }
     }
 
-    bool Vehicle_Router::send_order(std::string& order_id_, int& state_){
+    bool Vehicle_Router::send_order_state(std::string& order_id_, int state_, int robot_id_){
         std_msgs::Int16MultiArray msg;
         msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
         msg.layout.dim[0].label = order_id_;
         msg.data.push_back(state_);
+        msg.data.push_back(robot_id_);
         order_state_pub.publish(msg);
         return true;
     }

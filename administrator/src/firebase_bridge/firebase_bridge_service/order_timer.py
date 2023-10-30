@@ -53,7 +53,7 @@ class Order_Timeout_Service:
     def CheckTimeout(self, id: str):
         POSIX_now = datetime.now().timestamp()
         POSIX_time = self.IdDecode(id)
-        limit_second = 300
+        limit_second = 600
         if (POSIX_now - POSIX_time) > limit_second:
             return True
         else:

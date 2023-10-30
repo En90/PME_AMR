@@ -3,13 +3,11 @@ from firebase_admin import db
 from firebase_admin import exceptions
 from firebase_bridge_class import Site
 from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped
 
 
 class Site_Manage_Service:
     def __init__(self, app, sites):
-        rospy.loginfo(
-            "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        )
         self.app = app
         self.sites = sites
         self.InitService()
@@ -25,7 +23,9 @@ class Site_Manage_Service:
                 "/site_location", PoseStamped, queue_size=500
             )
             self.loc_ref = db.reference("/Location")
-            # self.RegistSiteListener()
+            self.administrator_mode = db.reference("/administrator_mode")
+            self.RegistSiteListener()
+            # self.RegistModeListener()
             self.GetOnce()
             while not rospy.is_shutdown():
                 if self.site_location_pub.get_num_connections():
@@ -38,20 +38,13 @@ class Site_Manage_Service:
             reason: str = "Init compound message error"
             rospy.signal_shutdown(reason)
 
-    # def RegistSiteListener(self):
-    #     # Error: listen() takes 2 positional arguments but 3 were given
-    #     def on_child_removed(event):
-    #         print("removed: ", event.data)
+    def RegistSiteListener(self):
+        # Error: listen() takes 2 positional arguments but 3 were given
+        def on_child_added(event):
+            print("added:", event.data)
 
-    #     def on_child_changed(event):
-    #         print("changed: ", event.data)
-
-    #     def on_child_added(event):
-    #         print("added:", event.data)
-
-    #     self.loc_ref.listen("child_added", on_child_added)
-    #     self.loc_ref.listen("child_removed", on_child_removed)
-    #     self.loc_ref.listen("child_changed", on_child_changed)
+        # self.loc_ref.listen("child_added", on_child_added)
+        self.loc_ref.listen(on_child_added)
 
     def GetOnce(self):
         for site_id, site_value in self.loc_ref.get().items():
@@ -71,6 +64,21 @@ class Site_Manage_Service:
             msg.pose.orientation.w = site_value.orientation[3]
             msg.pose.position.z = site_value.floor
             self.site_location_pub.publish(msg)
+
+    # def RegistModeListener(self):
+    #     def callback(msg):
+    #         pass
+
+    #     def on_mode_update(event):
+    #         if event.data == 0:
+    #             rospy.loginfo("unrigister")
+    #             self.order_state_sub.unregister()
+    #         elif event.data == 1:
+    #             rospy.loginfo("In administrator mode")
+    #             self.order_state_sub.add_callback(callback)
+
+    #     self.order_state_sub = rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped)
+    #     self.administrator_mode.listen(on_mode_update)
 
     def SendSitesState(self):
         pass
