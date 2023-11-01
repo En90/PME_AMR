@@ -34,7 +34,21 @@ class Site:
         return site
 
     def to_dict(self):
-        pass
+        dest = {
+            "floor": self.floor,
+            "poisition": {
+                "x": self.position[0],
+                "y": self.position[1],
+                "z": self.position[2],
+            },
+            "orientation": {
+                "x": self.orientation[0],
+                "y": self.orientation[1],
+                "z": self.orientation[2],
+                "w": self.orientation[3],
+            },
+        }
+        return dest
 
     def __repr__(self):
         pass
