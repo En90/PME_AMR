@@ -84,6 +84,7 @@ class Site_Manage_Service:
     def RegistModeListener(self):
         def on_mode_update(event):
             if event.data == 0:
+                rospy.logwarn("Shutdown administrator mode")
                 self.in_administrator_mode = False
             elif event.data == 1:
                 rospy.logwarn("In administrator mode")

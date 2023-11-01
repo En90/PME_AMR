@@ -45,7 +45,7 @@ class Order_Manage_Service:
                 )
             )
         elif state == 2:
-            order: Order = self.confirmed["order_id"]
+            order: Order = self.confirmed[order_id]
             order.state = 2
             self.send_order_state(
                 self.init_pick_package_msg(
@@ -58,7 +58,7 @@ class Order_Manage_Service:
                 )
             )
         elif state == 3:
-            order: Order = self.confirmed["order_id"]
+            order: Order = self.confirmed[order_id]
             order.state = 3
             self.send_order_state(
                 self.init_dl_msg(
@@ -71,7 +71,7 @@ class Order_Manage_Service:
                 )
             )
         elif state == 4:
-            order: Order = self.confirmed["order_id"]
+            order: Order = self.confirmed[order_id]
             order.state = 4
             self.send_order_state(
                 self.init_end_msg(
