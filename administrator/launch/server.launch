@@ -2,6 +2,11 @@
   <group ns="vehicle_routing_problem">
     <rosparam command="load" file="$(find administrator)/config/robot_param.yaml"/>
   </group>
-  <node name="vehicle_router" pkg="administrator" type="vehicle_router_node" output="screen"/>
-  <node name="firebase_bridge" pkg="administrator" type="firebase_bridge" output="screen"/>
+  <node name="vehicle_router" pkg="administrator" type="vehicle_router_node" output="screen">
+    <remap from="/robot_state" to="/robot_state"/>
+    <remap from="/Interface" to="/Interface"/>
+  </node>
+  <node name="firebase_bridge" pkg="administrator" type="firebase_bridge" output="screen">
+    <remap from="/amcl_pose" to="/amcl_pose"/>
+  </node>
 </launch>

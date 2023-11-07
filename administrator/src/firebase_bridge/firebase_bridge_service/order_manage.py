@@ -23,7 +23,7 @@ class Order_Manage_Service:
             self.order_state_sub = rospy.Subscriber(
                 "/order_state", Int16MultiArray, self.order_state_callback
             )
-            rospy.loginfo("Init order manage service success")
+            rospy.logwarn("Init order manage service success")
         except Exception as e:
             rospy.logerr("Error when init order manage service: %s", e)
 

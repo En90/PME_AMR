@@ -21,7 +21,7 @@ class Order_Timeout_Service:
         try:
             self.FS = firestore.client()
             self.RegistOrderTimer()
-            rospy.loginfo("Init order timeout service success")
+            rospy.logwarn("Init order timeout service success")
         except Exception as e:
             rospy.logerr("Error when init Firestore: %s", e)
 

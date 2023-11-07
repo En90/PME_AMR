@@ -9,16 +9,16 @@ import rospy
 
 class Receive_Order_Service:
     def __init__(self, app, unconfirmed: dict, confirmed: dict):
-        self.InitService()
         self.unconfirmed = unconfirmed
         self.confirmed = confirmed
         self.app = app
+        self.InitService()
 
     def __del__(self):
         # self.Confirmed_listener.unsubscribe()
         # self.Unconfirmed_listener.unsubscribe()
         self.OrderListener.unsubscribe()
-        pass
+        rospy.logwarn("shut down Receive_Order_Service")
 
     def InitService(self):
         try:
@@ -29,7 +29,7 @@ class Receive_Order_Service:
             self.confirmed_pub = rospy.Publisher(
                 "confirmed_order", order_msgs, queue_size=10
             )
-            rospy.loginfo("Init receive order service success")
+            rospy.logwarn("Init receive order service success")
         except Exception as e:
             rospy.logerr("Error when init Firestore: %s", e)
 
@@ -86,8 +86,8 @@ class Receive_Order_Service:
 
     def RegistOrderListener(self):
         def on_snapshot(col_snapshot, changes, read_time):
-            for doc in col_snapshot:
-                rospy.loginfo("Received document snapshot: %s", doc.id)
+            # for doc in col_snapshot:
+            #     rospy.loginfo("Received document snapshot: %s", doc.id)
             for change in changes:
                 if change.type.name == "ADDED":
                     rospy.loginfo("New order:\n%s", change.document.id)

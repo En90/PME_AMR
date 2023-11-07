@@ -21,7 +21,7 @@ namespace administrator{
         site_location_sub = nh.subscribe("/site_location", 50, &Vehicle_Router::site_location_callback, this);
         order_state_pub = nh.advertise<std_msgs::Int16MultiArray>("/order_state", 1);
         mission_pub = nh.advertise<Interface>("/Interface", 1);
-        ROS_INFO("Init vehicle router successed");
+        ROS_WARN("Init vehicle router successed");
     }
 
     Vehicle_Router::~Vehicle_Router(){

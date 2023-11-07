@@ -17,12 +17,12 @@ class Site_Manage_Service:
     def __del__(self):
         self.location_listener.close()
         self.administrator_mode_listener.close()
-        del self.site_location_pub
+        # will not go here, close() take too long and cause escalating to SIGTERM
         del self.loc_ref
+        rospy.logwarn("shut down Site_Manage_Service")
 
     def InitService(self):
         try:
-            self.administrator_robot_topic = "/amcl_pose"
             self.in_administrator_mode = False
             self.site_location_pub = rospy.Publisher(
                 "/site_location", PoseStamped, queue_size=500
@@ -36,11 +36,11 @@ class Site_Manage_Service:
                     for site_id, site_value in self.sites.items():
                         self.SendSitesLocation(site_id, site_value)
                     break
-            rospy.loginfo("Init site manage service success!")
+            rospy.logwarn("Init site manage service success")
 
         except Exception as e:
             rospy.logerr("error when regist site listener: %s", e)
-            reason: str = "Init compound message error"
+            reason: str = "Site_Manage_Service error"
             rospy.signal_shutdown(reason)
 
     def RegistLocationListener(self):
@@ -52,7 +52,8 @@ class Site_Manage_Service:
                     if self.in_administrator_mode == True:
                         self.UpdateSiteLocation(event.data)
                     else:
-                        rospy.loginfo("first time initial listener")
+                        pass
+                        # rospy.loginfo("first time initial listener")
                 else:
                     if event.event_type == "patch":
                         rospy.loginfo("add new data: %s at %s", event.data, event.path)
@@ -61,7 +62,12 @@ class Site_Manage_Service:
                             "update value to: %s at %s", event.data, event.path
                         )
 
-        self.location_listener = self.loc_ref.listen(on_child_added)
+        try:
+            self.location_listener = self.loc_ref.listen(on_child_added)
+        except exceptions.FirebaseError as e:
+            rospy.logerr("error when regist location listener: %s", e)
+        except exceptions as e:
+            rospy.logerr("error when regist location listener: %s", e)
 
     def GetOnce(self):
         for site_id, site_value in self.loc_ref.get().items():
@@ -84,10 +90,10 @@ class Site_Manage_Service:
     def RegistModeListener(self):
         def on_mode_update(event):
             if event.data == 0:
-                rospy.logwarn("Shutdown administrator mode")
+                rospy.loginfo("Shutdown administrator mode")
                 self.in_administrator_mode = False
             elif event.data == 1:
-                rospy.logwarn("In administrator mode")
+                rospy.loginfo("In administrator mode")
                 self.in_administrator_mode = True
 
         try:
@@ -109,7 +115,7 @@ class Site_Manage_Service:
                 site_name,
             )
             msg_get: PoseWithCovarianceStamped = rospy.wait_for_message(
-                self.administrator_robot_topic, PoseWithCovarianceStamped, timeout_
+                "/amcl_pose", PoseWithCovarianceStamped, timeout_
             )
         except ROSException as e:
             rospy.logwarn("timeout over %d seconds", timeout_)
