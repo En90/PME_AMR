@@ -4,9 +4,11 @@
   </group>
   <node name="vehicle_router" pkg="administrator" type="vehicle_router_node" output="screen">
     <remap from="/robot_state" to="/robot_state"/>
-    <remap from="/Interface" to="/Interface"/>
+    <remap from="/Interface" to="/action"/>
+    <remap from="/site_location" to="/site_location"/>
   </node>
-  <node name="firebase_bridge" pkg="administrator" type="firebase_bridge" output="screen">
+  <node name="firebase_bridge" pkg="administrator" type="firebase_bridge" output="screen" launch-prefix="/home/en/python3.8_venv/bin/python3">
     <remap from="/amcl_pose" to="/amcl_pose"/>
+    <remap from="/site_location" to="/site_location"/>
   </node>
 </launch>

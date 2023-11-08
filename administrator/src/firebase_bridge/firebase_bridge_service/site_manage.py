@@ -29,7 +29,7 @@ class Site_Manage_Service:
             )
             self.loc_ref = db.reference("/Location")
             self.RegistLocationListener()
-            self.RegistModeListener()
+            # self.RegistModeListener()
             self.GetOnce()
             while not rospy.is_shutdown():
                 if self.site_location_pub.get_num_connections():
@@ -64,10 +64,12 @@ class Site_Manage_Service:
 
         try:
             self.location_listener = self.loc_ref.listen(on_child_added)
-        except exceptions.FirebaseError as e:
-            rospy.logerr("error when regist location listener: %s", e)
-        except exceptions as e:
-            rospy.logerr("error when regist location listener: %s", e)
+        # except exceptions.FirebaseError as e:
+        #     rospy.logerr("error when regist location listener: %s", e.code)
+        # except exceptions as e:
+        #     rospy.logerr("error when regist location listener: %s", e)
+        except Exception as e:
+            rospy.logwarn("error when regist location listener: %s", e)
 
     def GetOnce(self):
         for site_id, site_value in self.loc_ref.get().items():
@@ -100,8 +102,10 @@ class Site_Manage_Service:
             self.administrator_mode_listener = db.reference(
                 "/administrator_mode"
             ).listen(on_mode_update)
-        except exceptions as e:
+        except Exception as e:
             rospy.logwarn("error when regist mode listener: %s", e)
+        # except exceptions as e:
+        #     rospy.logwarn("error when regist mode listener: %s", e)
 
     # def SendSitesState(self):
     #     pass
