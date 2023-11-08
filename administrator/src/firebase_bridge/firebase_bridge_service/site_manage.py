@@ -29,7 +29,7 @@ class Site_Manage_Service:
             )
             self.loc_ref = db.reference("/Location")
             self.RegistLocationListener()
-            # self.RegistModeListener()
+            self.RegistModeListener()
             self.GetOnce()
             while not rospy.is_shutdown():
                 if self.site_location_pub.get_num_connections():
@@ -49,18 +49,19 @@ class Site_Manage_Service:
                 rospy.logwarn("delete site information: %s", event.path)
             else:
                 if event.path == "/":
-                    if self.in_administrator_mode == True:
+                    if (self.in_administrator_mode == True) or (len(event.data) == 1):
                         self.UpdateSiteLocation(event.data)
                     else:
+                        rospy.loginfo("first time initial listener")
                         pass
-                        # rospy.loginfo("first time initial listener")
                 else:
                     if event.event_type == "patch":
                         rospy.loginfo("add new data: %s at %s", event.data, event.path)
                     elif event.event_type == "put":
-                        rospy.loginfo(
-                            "update value to: %s at %s", event.data, event.path
-                        )
+                        #rospy.loginfo(
+                        #    "update value to: %s at %s", event.data, event.path
+                        #)
+                        self.UpdateSiteLocationByUser(event.path)
 
         try:
             self.location_listener = self.loc_ref.listen(on_child_added)
@@ -123,9 +124,40 @@ class Site_Manage_Service:
             )
         except ROSException as e:
             rospy.logwarn("timeout over %d seconds", timeout_)
+            self.loc_ref.child(site_name).delete()
         else:
             p: Pose = msg_get.pose.pose
-            posit: tuple = (p.position.x, p.position.y, p.position.x)
+            posit: tuple = (p.position.x, p.position.y, p.position.z)
+            orien: tuple = (
+                p.orientation.x,
+                p.orientation.y,
+                p.orientation.z,
+                p.orientation.w,
+            )
+            # add floor
+            new_site = Site(floor=3, position=posit, orientation=orien, state=0)
+            self.sites[site_name] = new_site
+            self.SendSitesLocation(site_name, new_site)
+            site_update: dict = new_site.to_dict()
+            self.loc_ref.child(site_name).update(site_update)
+
+    def UpdateSiteLocationByUser(self, site_name_):
+        timeout_ = 5
+        site_name = site_name_[1:]
+        try:
+            rospy.loginfo(
+                "Get the current position of the robot as the site %s location",
+                site_name,
+            )
+            msg_get: PoseWithCovarianceStamped = rospy.wait_for_message(
+                "/amcl_pose", PoseWithCovarianceStamped, timeout_
+            )
+        except ROSException as e:
+            rospy.logwarn("timeout over %d seconds", timeout_)
+            self.loc_ref.child(site_name).delete()
+        else:
+            p: Pose = msg_get.pose.pose
+            posit: tuple = (p.position.x, p.position.y, p.position.z)
             orien: tuple = (
                 p.orientation.x,
                 p.orientation.y,

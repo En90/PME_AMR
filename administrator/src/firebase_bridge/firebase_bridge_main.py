@@ -36,7 +36,7 @@ class firebase_bridge:
     def myhook(self):
         rospy.loginfo("shutdown time!")
         del self.receive_order_service
-        del self.order_timeout_service
+        #del self.order_timeout_service
         del self.order_manage_service
         del self.site_manage_service
         delete_app(self.app)

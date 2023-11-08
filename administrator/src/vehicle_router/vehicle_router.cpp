@@ -75,25 +75,30 @@ namespace administrator{
         // 更新 state
         Robot::State now_state;
         static std::unordered_map<std::string, Robot::State> const table = { {"GOAL",Robot::State::WAIT}, {"STUCK",Robot::State::STUCK} };
+        
         auto it = table.find(msg.state.data);
         if (it != table.end())
             now_state = it->second;
         else
             ROS_ERROR("error when get robot state: invalid state");
-        
+
         // 針對 state 做出反應
         if(now_state == Robot::State::STUCK){
             if(robot_.state == Robot::State::WORK){
-                // work error
+            	// work error
+            	ROS_WARN("robot %d doing %s meet some error, resend mission",robot_id,robot_.doing_mission.c_str());
             }
             else if(robot_.state == Robot::State::RUN){
                 // run error
+                ROS_WARN("robot %d doing %s meet some error, resend mission",robot_id,robot_.doing_mission.c_str());
             }
             else
                 ROS_ERROR("error about robot state: imposible state");
         }
         else if(now_state == Robot::State::WAIT){
             // goal success, update order state
+            if(VRP_Solver->working_orders.empty())
+            	return;
             std::pair<unsigned short int, Order> working_order_ = (VRP_Solver->working_orders).at(robot_.doing_order_id);
             if(robot_.doing_mission == "DROP_OFF"){
                 working_order_.second.state = Order::State::DM;
@@ -122,6 +127,7 @@ namespace administrator{
                     robot_.state == Robot::State::IDLE;
             }
             else{
+                ROS_ERROR("imposible state");
                 // imposible state
             }
 
@@ -175,7 +181,7 @@ namespace administrator{
             else{
                 ROS_INFO("send %d to move to %s", robot_id, site_id.c_str());
                 Interface interface_msg;
-                interface_msg.mission = "move_goal";
+                interface_msg.mission = "move_to_goal_floor";
                 geometry_msgs::PoseStamped goal_pos;
                 goal_pos.pose.position.x = std::get<0>(goal_site_.position);
                 goal_pos.pose.position.y = std::get<1>(goal_site_.position);
