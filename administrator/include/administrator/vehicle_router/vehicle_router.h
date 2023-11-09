@@ -10,6 +10,8 @@
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Int16MultiArray.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <pluginlib/class_loader.h>
 #include "administrator/order_msgs.h"
 #include "administrator/Interface.h"
@@ -45,6 +47,8 @@ namespace administrator{
             //bool send_goal(int& robot_id, Site& goal_site_);
             bool send_goal(Robot& robot_, int robot_id, std::string site_id, std::string order_id);
             bool send_order_state(std::string& order_id_, int state_, int robot_id_);
+            void error_return(int robot_id_, std::string& order_id_, geometry_msgs::Pose& now_pos_);
+            bool get_once_pose(int robot_id_, geometry_msgs::Pose& pose_);
 
         public:
             Vehicle_Router();

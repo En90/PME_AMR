@@ -86,19 +86,66 @@ namespace administrator{
         if(now_state == Robot::State::STUCK){
             if(robot_.state == Robot::State::WORK){
             	// work error
-            	ROS_WARN("robot %d doing %s meet some error, resend mission",robot_id,robot_.doing_mission.c_str());
+            	ROS_WARN("robot %d doing %s meet some error", robot_id, robot_.doing_mission.c_str());
+                robot_.stuck_count++;
+                if(robot_.stuck_count == 1){
+                    // first stuck, resend goal
+                    if(send_goal(robot_, robot_id, robot_.doing_mission, robot_.doing_order_id))
+                        ROS_WARN("sucess resend mission");
+                    else
+                        ROS_ERROR("resend robot %d do mission %s FAILED", robot_id, robot_.doing_mission.c_str());
+                }
+                else if(robot_.stuck_count == 2){
+                    // second stuck, send go home
+                    if(!send_goal(robot_, robot_id, "0", "0"))
+                        ROS_ERROR("send robot %d go home FAILED", robot_id);
+                    else
+                        robot_.state = Robot::State::STUCK;
+                }
+                else{
+                    // third stuck, wait for concern
+                    geometry_msgs::Pose p;
+                    if(get_once_pose(robot_id, p))
+                        error_return(robot_id, robot_.doing_order_id, p);
+                    else
+                        ROS_ERROR("robot %d stuck and can not get it position", robot_id);
+                }
             }
             else if(robot_.state == Robot::State::RUN){
                 // run error
-                ROS_WARN("robot %d doing %s meet some error, resend mission",robot_id,robot_.doing_mission.c_str());
+                ROS_WARN("robot %d doing %s meet some error",robot_id,robot_.doing_mission.c_str());
+                robot_.stuck_count++;
+                if(robot_.stuck_count == 1){
+                    // first stuck, resend goal
+                    if(send_goal(robot_, robot_id, robot_.doing_mission, robot_.doing_order_id))
+                        ROS_WARN("sucess resend mission");
+                    else
+                        ROS_ERROR("resend robot %d do mission %s FAILED", robot_id, robot_.doing_mission.c_str());
+                }
+                else if(robot_.stuck_count == 2){
+                    // second stuck, send go home
+                    if(!send_goal(robot_, robot_id, "0", "0"))
+                        ROS_ERROR("send robot %d go home FAILED", robot_id);
+                    else
+                        robot_.state = Robot::State::STUCK;
+                }
+                else{
+                    // third stuck, wait for concern
+                    geometry_msgs::Pose p;
+                    if(get_once_pose(robot_id, p))
+                        error_return(robot_id, robot_.doing_order_id, p);
+                    else
+                        ROS_ERROR("robot %d stuck and can not get it position", robot_id);
+                }
             }
             else
                 ROS_ERROR("error about robot state: imposible state");
         }
         else if(now_state == Robot::State::WAIT){
-            // goal success, update order state
             if(VRP_Solver->working_orders.empty())
             	return;
+            // goal success, update order state
+            robot_.stuck_count = 0;
             std::pair<unsigned short int, Order> working_order_ = (VRP_Solver->working_orders).at(robot_.doing_order_id);
             if(robot_.doing_mission == "DROP_OFF"){
                 working_order_.second.state = Order::State::DM;
@@ -123,8 +170,22 @@ namespace administrator{
                 send_order_state(robot_.doing_order_id, Order::State::PL, robot_id);
             }
             else if(robot_.doing_mission == "0"){
-                if(robot_.goals.empty())
-                    robot_.state == Robot::State::IDLE;
+                if(robot_.state == Robot::State::STUCK){
+                    // STUCK at home,  recongize administrator
+                    geometry_msgs::Pose p;
+                    if(get_once_pose(robot_id, p))
+                        error_return(robot_id, robot_.doing_order_id, p);
+                    else
+                        ROS_ERROR("robot %d stuck and can not get it position", robot_id);
+                }
+                else{
+                    if(robot_.goals.empty()){
+                        robot_.stuck_count = 0;
+                        robot_.state == Robot::State::IDLE;
+                    }
+                    else
+                        ROS_INFO("robot arrived home but still have mission");
+                }
             }
             else{
                 ROS_ERROR("imposible state");
@@ -208,5 +269,25 @@ namespace administrator{
         msg.data.push_back(robot_id_);
         order_state_pub.publish(msg);
         return true;
+    }
+
+    void Vehicle_Router::error_return(int robot_id_, std::string& order_id_, geometry_msgs::Pose& now_pos_){
+        if(order_id_ == "0"){
+            ROS_ERROR("stuck when go home");
+        }
+        else{
+            // error when doing mission
+            ROS_ERROR("error return not done yet");
+        }
+    }
+
+    bool Vehicle_Router::get_once_pose(int robot_id_, geometry_msgs::Pose& pose_){
+        ros::Duration one_seconds_timeout(1, 0);
+        std::string topic = "/amcl_pose";
+        geometry_msgs::PoseWithCovarianceStampedConstPtr msg_ptr = ros::topic::waitForMessage<geometry_msgs::PoseWithCovarianceStamped>(topic, nh, one_seconds_timeout);
+        if(msg_ptr == NULL)
+            return false;
+        else
+            return true;
     }
 }

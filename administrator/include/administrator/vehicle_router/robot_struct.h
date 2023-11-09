@@ -15,6 +15,7 @@ struct Robot{
     unsigned short int heading_position = 0;
     std::string doing_mission;
     std::string doing_order_id;
+    unsigned short int stuck_count = 0;
 };
 
 #endif
