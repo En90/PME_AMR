@@ -1,0 +1,4 @@
+firebase-admin
+netifaces
+pyyaml
+rospkg

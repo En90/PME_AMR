@@ -83,6 +83,7 @@ namespace administrator{
             ROS_ERROR("error when get robot state: invalid state");
 
         // 針對 state 做出反應
+        ROS_DEBUG("robot_state: %d", robot_.state);
         if(now_state == Robot::State::STUCK){
             if(robot_.state == Robot::State::WORK){
             	// work error
@@ -91,7 +92,7 @@ namespace administrator{
                 if(robot_.stuck_count == 1){
                     // first stuck, resend goal
                     if(send_goal(robot_, robot_id, robot_.doing_mission, robot_.doing_order_id))
-                        ROS_WARN("sucess resend mission");
+                        ROS_WARN("success resend mission");
                     else
                         ROS_ERROR("resend robot %d do mission %s FAILED", robot_id, robot_.doing_mission.c_str());
                 }
@@ -99,16 +100,20 @@ namespace administrator{
                     // second stuck, send go home
                     if(!send_goal(robot_, robot_id, "0", "0"))
                         ROS_ERROR("send robot %d go home FAILED", robot_id);
-                    else
+                    else{
                         robot_.state = Robot::State::STUCK;
+                        robot_.doing_mission = "0";
+                    }
                 }
                 else{
                     // third stuck, wait for concern
                     geometry_msgs::Pose p;
                     if(get_once_pose(robot_id, p))
                         error_return(robot_id, robot_.doing_order_id, p);
-                    else
-                        ROS_ERROR("robot %d stuck and can not get it position", robot_id);
+                    else{
+                        ROS_ERROR("robot %d stuck and can not get it position, need shutdown", robot_id);
+                        robot_.goals.clear();
+                    }
                 }
             }
             else if(robot_.state == Robot::State::RUN){
@@ -118,7 +123,7 @@ namespace administrator{
                 if(robot_.stuck_count == 1){
                     // first stuck, resend goal
                     if(send_goal(robot_, robot_id, robot_.doing_mission, robot_.doing_order_id))
-                        ROS_WARN("sucess resend mission");
+                        ROS_WARN("success resend mission");
                     else
                         ROS_ERROR("resend robot %d do mission %s FAILED", robot_id, robot_.doing_mission.c_str());
                 }
@@ -126,24 +131,69 @@ namespace administrator{
                     // second stuck, send go home
                     if(!send_goal(robot_, robot_id, "0", "0"))
                         ROS_ERROR("send robot %d go home FAILED", robot_id);
-                    else
+                    else{
                         robot_.state = Robot::State::STUCK;
+                        robot_.doing_mission = "0";
+                    }
                 }
                 else{
                     // third stuck, wait for concern
                     geometry_msgs::Pose p;
                     if(get_once_pose(robot_id, p))
                         error_return(robot_id, robot_.doing_order_id, p);
-                    else
-                        ROS_ERROR("robot %d stuck and can not get it position", robot_id);
+                    else{
+                        ROS_ERROR("robot %d stuck and can not get it position, need shutdown", robot_id);
+                        robot_.goals.clear();
+                    }
+                }
+            }
+            else if(robot_.state == Robot::State::STUCK){
+                ROS_ERROR("robot %d stuck and can not go home", robot_id);
+                robot_.stuck_count++;
+                geometry_msgs::Pose p;
+                if(get_once_pose(robot_id, p))
+                    error_return(robot_id, robot_.doing_order_id, p);
+                else{
+                    ROS_ERROR("robot %d stuck and can not get it position, need shutdown", robot_id);
+                    robot_.goals.clear();
                 }
             }
             else
                 ROS_ERROR("error about robot state: imposible state");
         }
         else if(now_state == Robot::State::WAIT){
-            if(VRP_Solver->working_orders.empty())
+            if(VRP_Solver->working_orders.empty() || robot_.state == Robot::State::IDLE)
             	return;
+            // if just go home mission, neglect
+            if(robot_.doing_mission == "0"){
+                if(robot_.state == Robot::State::STUCK){
+                    // STUCK at home,  recongize administrator
+                    geometry_msgs::Pose p;
+                    if(get_once_pose(robot_id, p))
+                        error_return(robot_id, robot_.doing_order_id, p);
+                    else{
+                        ROS_ERROR("robot %d stuck and can not get it position, need shutdown", robot_id);
+                        robot_.goals.clear();
+                    }
+                }
+                else{
+                    if(robot_.goals.empty()){
+                        robot_.stuck_count = 0;
+                        robot_.state = Robot::State::IDLE;
+                    }
+                    else{
+                        ROS_INFO("robot arrived home but still have mission");
+                        if(send_goal(robot_, robot_id, robot_.goals.front().second, robot_.goals.front().first)){
+                            robot_.doing_mission = robot_.goals.front().second;
+                            robot_.doing_order_id = robot_.goals.front().first;
+                            robot_.goals.pop_front();
+                        }
+                        else
+                            ROS_ERROR("send robot %d to goal %s FAILED", robot_id, robot_.goals.front().second.c_str());
+                    }
+                }
+                return;
+            }
             // goal success, update order state
             robot_.stuck_count = 0;
             std::pair<unsigned short int, Order> working_order_ = (VRP_Solver->working_orders).at(robot_.doing_order_id);
@@ -169,24 +219,6 @@ namespace administrator{
                 // send back to bridge
                 send_order_state(robot_.doing_order_id, Order::State::PL, robot_id);
             }
-            else if(robot_.doing_mission == "0"){
-                if(robot_.state == Robot::State::STUCK){
-                    // STUCK at home,  recongize administrator
-                    geometry_msgs::Pose p;
-                    if(get_once_pose(robot_id, p))
-                        error_return(robot_id, robot_.doing_order_id, p);
-                    else
-                        ROS_ERROR("robot %d stuck and can not get it position", robot_id);
-                }
-                else{
-                    if(robot_.goals.empty()){
-                        robot_.stuck_count = 0;
-                        robot_.state == Robot::State::IDLE;
-                    }
-                    else
-                        ROS_INFO("robot arrived home but still have mission");
-                }
-            }
             else{
                 ROS_ERROR("imposible state");
                 // imposible state
@@ -198,6 +230,7 @@ namespace administrator{
                     ROS_ERROR("send robot %d go home FAILED", robot_id);
                 robot_.doing_mission = "0";
                 robot_.doing_order_id = "0";
+                ROS_INFO("complete all mission, go home");
             }
             else{
                 if(send_goal(robot_, robot_id, robot_.goals.front().second, robot_.goals.front().first)){
