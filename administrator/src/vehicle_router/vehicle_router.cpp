@@ -20,7 +20,7 @@ namespace administrator{
         robot_sub = nh.subscribe("/robot_state", 10, &Vehicle_Router::robot_callback, this);
         site_location_sub = nh.subscribe("/site_location", 50, &Vehicle_Router::site_location_callback, this);
         order_state_pub = nh.advertise<std_msgs::Int16MultiArray>("/order_state", 1);
-        mission_pub = nh.advertise<Interface>("/Interface", 1);
+        mission_pub = nh.advertise<pme_amr_msg::Interface>("/Interface", 1);
         ROS_WARN("Init vehicle router successed");
     }
 
@@ -63,7 +63,7 @@ namespace administrator{
         }
     }
 
-    void Vehicle_Router::robot_callback(const RobotState& msg){
+    void Vehicle_Router::robot_callback(const pme_amr_msg::RobotState& msg){
         ROS_INFO("get robot state");
         
         // 確認收到的是哪台機器人的 state
@@ -274,7 +274,7 @@ namespace administrator{
             }
             else{
                 ROS_INFO("send %d to move to %s", robot_id, site_id.c_str());
-                Interface interface_msg;
+                pme_amr_msg::Interface interface_msg;
                 interface_msg.mission = "move_to_goal_floor";
                 geometry_msgs::PoseStamped goal_pos;
                 goal_pos.pose.position.x = std::get<0>(goal_site_.position);

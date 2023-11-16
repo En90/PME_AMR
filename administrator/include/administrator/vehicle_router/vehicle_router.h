@@ -14,8 +14,8 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <pluginlib/class_loader.h>
 #include "administrator/order_msgs.h"
-#include "administrator/Interface.h"
-#include "administrator/RobotState.h"
+#include "pme_amr_msg/Interface.h"
+#include "pme_amr_msg/RobotState.h"
 #include "administrator/vehicle_router/order_struct.h"
 #include "administrator/vehicle_router/robot_struct.h"
 #include "administrator/vehicle_router/site_struct.h"
@@ -39,7 +39,7 @@ namespace administrator{
             boost::shared_ptr<vrp_base::VehicleRoutingSolver_base> VRP_Solver;
             // callback
             void order_callback(const order_msgs::ConstPtr& msg);
-            void robot_callback(const RobotState& msg); // robot_id robot_state robot_position 
+            void robot_callback(const pme_amr_msg::RobotState& msg); // robot_id robot_state robot_position 
             void site_location_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
             // container
             std::unordered_map<std::string, Site> sites;

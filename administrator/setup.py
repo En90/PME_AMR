@@ -11,7 +11,11 @@ setup_args = generate_distutils_setup(
         "firebase_bridge_class": "src/firebase_bridge/firebase_bridge_class",
         "firebase_bridge_service": "src/firebase_bridge/firebase_bridge_service",
     },
-    install_requires=["firebase-admin", "pyyaml", "rospkg", "netifaces"],
+    install_requires=[
+        "firebase-admin",
+        "pyyaml",
+        "rospkg",
+    ],
 )
 
 setup(**setup_args)
