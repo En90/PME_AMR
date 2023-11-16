@@ -1,0 +1,3 @@
+[submodule "pme_amr_msg"]
+	path = pme_amr_msg
+	url = https://github.com/pithreeone/pme_amr_msg.git
